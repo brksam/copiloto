@@ -33,7 +33,7 @@ def create_app() -> FastAPI:
             "http://localhost:5173",
             "http://localhost:5174",
             "http://localhost:3000",
-            "http://localhost:8080",
+            "https://copilototemp.netlify.app",
         ],
         allow_credentials=True,
         allow_methods=["*"],
