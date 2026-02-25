@@ -3,6 +3,7 @@ export interface Message {
     role: "user" | "assistant";
     content: string;
     timestamp: Date;
+    feedbackGiven?: "positive" | "negative";
 }
 
 export interface ScreenContext {
@@ -20,6 +21,7 @@ export interface HistoryEntry {
 export interface ChatRequest {
     message: string;
     tenant_id: string;
+    conversation_id?: string;
     context: ScreenContext;
     history: HistoryEntry[];
 }
@@ -27,3 +29,12 @@ export interface ChatRequest {
 export interface ChatResponse {
     response: string;
 }
+
+export interface FeedbackRequest {
+    tenant_id: string;
+    message: string;
+    response: string;
+    rating: "positive" | "negative";
+    context: ScreenContext | null;
+}
+

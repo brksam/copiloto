@@ -6,8 +6,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes.chat import router as chat_router
+from backend.api.routes.conversations import router as conversations_router
 from backend.api.routes.health import router as health_router
+from backend.api.routes.feedback import router as feedback_router
 from backend.api.routes.ingest import router as ingest_router
+from backend.api.routes.onboarding import router as onboarding_router
 from backend.core.config import get_settings
 from backend.models.database import init_db
 
@@ -28,6 +31,7 @@ def create_app() -> FastAPI:
         CORSMiddleware,
         allow_origins=[
             "http://localhost:5173",
+            "http://localhost:5174",
             "http://localhost:3000",
             "http://localhost:8080",
         ],
@@ -38,7 +42,10 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(chat_router)
+    app.include_router(conversations_router)
     app.include_router(ingest_router)
+    app.include_router(feedback_router)
+    app.include_router(onboarding_router)
 
     @app.on_event("startup")
     async def on_startup() -> None:

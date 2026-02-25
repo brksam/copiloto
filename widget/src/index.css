@@ -1,28 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 @import "tailwindcss";
 
-/* Custom scrollbar for the message area */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+/* ── Global font ──────────────────────────────── */
+* {
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+/* ── Grain texture overlay ────────────────────── */
+.grain-bg::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #e5e7eb;
-  border-radius: 9999px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #d1d5db;
-}
-
-/* Panel slide-up animation */
-@keyframes widget-slide-up {
+/* ── Splash fade in ───────────────────────────── */
+@keyframes splash-fade-in {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.97);
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.splash-fade-in {
+  animation: splash-fade-in 1.2s ease-out both;
+}
+
+.splash-fade-in-delay {
+  animation: splash-fade-in 1.2s ease-out 0.5s both;
+}
+
+.splash-fade-in-delay-2 {
+  animation: splash-fade-in 1s ease-out 1s both;
+}
+
+/* ── Glass panel slide up ─────────────────────── */
+@keyframes glass-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
   }
 
   to {
@@ -31,27 +57,127 @@
   }
 }
 
-.widget-slide-up {
-  animation: widget-slide-up 0.2s ease-out;
+.glass-slide-up {
+  animation: glass-slide-up 0.3s ease-out;
 }
 
-/* Subtle attention pulse on the floating icon */
-@keyframes widget-pulse {
+/* ── Green dot blink ──────────────────────────── */
+@keyframes dot-blink {
 
   0%,
   100% {
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.08),
-      0 0 0 0 rgba(99, 102, 241, 0);
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4);
   }
 
   50% {
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.08),
-      0 0 0 6px rgba(99, 102, 241, 0.08);
+    opacity: 0.6;
+    box-shadow: 0 0 8px 2px rgba(74, 222, 128, 0.3);
   }
 }
 
-.widget-pulse {
-  animation: widget-pulse 3s ease-in-out infinite;
+.dot-blink {
+  animation: dot-blink 2s ease-in-out infinite;
+}
+
+/* ── Glass scrollbar: hidden ──────────────────── */
+.glass-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.glass-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Prose for glass markdown ─────────────────── */
+.prose-glass p {
+  margin: 3px 0;
+}
+
+.prose-glass ul,
+.prose-glass ol {
+  margin: 4px 0;
+  padding-left: 16px;
+}
+
+.prose-glass li {
+  margin: 1px 0;
+}
+
+.prose-glass h1,
+.prose-glass h2,
+.prose-glass h3 {
+  margin: 8px 0 4px;
+  color: #ddd;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.prose-glass code {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ccc;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.prose-glass pre {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 6px 0;
+  overflow-x: auto;
+}
+
+.prose-glass pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.prose-glass a {
+  color: #667eea;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-glass strong {
+  color: #ddd;
+}
+
+.prose-glass blockquote {
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  padding-left: 12px;
+  color: #888;
+  margin: 6px 0;
+}
+
+/* ── Password gate shake ──────────────────────── */
+@keyframes gate-shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-8px);
+  }
+
+  40% {
+    transform: translateX(8px);
+  }
+
+  60% {
+    transform: translateX(-6px);
+  }
+
+  80% {
+    transform: translateX(4px);
+  }
+}
+
+.gate-shake {
+  animation: gate-shake 0.5s ease-in-out;
 }

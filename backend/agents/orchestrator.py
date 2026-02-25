@@ -4,9 +4,10 @@ from typing import Any, Dict, List
 
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from sqlalchemy import select
 
 from backend.core.config import get_settings
-from backend.models.database import AsyncSession
+from backend.models.database import AsyncSession, Feedback
 from backend.rag.retriever import format_chunks_as_context, retrieve_relevant_chunks
 
 
@@ -25,6 +26,19 @@ class ChatOrchestrator:
                 model=settings.ANTHROPIC_MODEL,
                 max_tokens=settings.ANTHROPIC_MAX_TOKENS,
             )
+
+    async def _get_negative_feedback(
+        self, session: AsyncSession, tenant_id: str, limit: int = 5
+    ) -> List[str]:
+        """Busca as últimas respostas avaliadas negativamente pelo tenant."""
+        stmt = (
+            select(Feedback.response)
+            .where(Feedback.tenant_id == tenant_id, Feedback.rating == "negative")
+            .order_by(Feedback.created_at.desc())
+            .limit(limit)
+        )
+        result = await session.execute(stmt)
+        return [row[0] for row in result.all()]
 
     async def chat(
         self,
@@ -61,11 +75,27 @@ class ChatOrchestrator:
                 f"O usuário está na tela: {page_title} ({current_url})\n"
             )
 
+        # ── Passive learning: fetch negative feedback ──
+        negative_responses = await self._get_negative_feedback(session, tenant_id)
+        feedback_section = ""
+        if negative_responses:
+            bad_examples = "\n".join(
+                f"  - {resp[:200]}" for resp in negative_responses
+            )
+            feedback_section = (
+                "\n=== APRENDIZADO (evite respostas similares) ===\n"
+                "O usuário avaliou negativamente as seguintes respostas. "
+                "Evite repeti-las ou dar respostas com tom/conteúdo parecido:\n"
+                f"{bad_examples}\n"
+                "=== FIM DO APRENDIZADO ===\n\n"
+            )
+
         system_prompt = (
             "Você é um co-piloto de IA especializado em operações de farmácias SaaS.\n"
             "Responda sempre de forma concisa, em PT-BR, e evite inventar dados.\n"
             "Quando não souber algo, admita explicitamente.\n"
             f"\n{screen_context_line}"
+            f"{feedback_section}"
             f"=== CONTEXTO RAG ===\n{rag_context}\n"
             f"=== FIM DO CONTEXTO ===\n\n"
             f"Contexto adicional da requisição (JSON): {context}"

@@ -19,4 +19,3 @@ def get_tenant_id(tenant_id: str) -> str:
     # Para o MVP, o tenant_id vem direto do payload.
     # Em versões futuras, pode vir de header, auth, etc.
     return tenant_id
-

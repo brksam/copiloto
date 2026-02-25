@@ -14,6 +14,7 @@ venv/
 env/
 
 # ── Node / Widget ─────────────────────────────────
+node_modules/
 widget/node_modules/
 widget/dist/
 widget/.vite/
@@ -37,6 +38,10 @@ db-data/
 *~
 .DS_Store
 Thumbs.db
+
+# ── Gemini / AI Agent ────────────────────────────
+.gemini/
+.agent/
 
 # ── Scraper runtime ──────────────────────────────
 links_processados.txt

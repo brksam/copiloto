@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type {
     ChatRequest,
     ChatResponse,
+    FeedbackRequest,
     HistoryEntry,
     Message,
     ScreenContext,
@@ -32,18 +33,73 @@ function buildHistory(messages: Message[]): HistoryEntry[] {
 }
 
 const API_URL = "http://localhost:8000/chat";
+const FEEDBACK_URL = "http://localhost:8000/feedback/";
+const CONVERSATIONS_URL = "http://localhost:8000/conversations";
 const TENANT_ID = "farmacia-teste";
+const STORAGE_KEY = "copiloto_conversation_id";
+
+const WELCOME_MESSAGE: Message = {
+    id: "welcome",
+    role: "assistant",
+    content:
+        "Olá 👋 Sou seu co-piloto inteligente.\nEstou aqui para ajudar com qualquer dúvida sobre o sistema.\nÉ só perguntar.",
+    timestamp: new Date(),
+};
+
+function getOrCreateConversationId(): string {
+    const existing = localStorage.getItem(STORAGE_KEY);
+    if (existing) return existing;
+    const newId = crypto.randomUUID();
+    localStorage.setItem(STORAGE_KEY, newId);
+    return newId;
+}
 
 export function useChat() {
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>([WELCOME_MESSAGE]);
     const [isLoading, setIsLoading] = useState(false);
+    const [conversationId, setConversationId] = useState(getOrCreateConversationId);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const loadedRef = useRef(false);
 
     const scrollToBottom = useCallback(() => {
         setTimeout(() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }, 50);
     }, []);
+
+    // ── Load existing messages on mount ──
+    useEffect(() => {
+        if (loadedRef.current) return;
+        loadedRef.current = true;
+
+        const loadHistory = async () => {
+            try {
+                const res = await fetch(
+                    `${CONVERSATIONS_URL}/${conversationId}/messages`,
+                    { headers: { "Content-Type": "application/json" } }
+                );
+                if (!res.ok) return; // 404 = new conversation, skip
+
+                const data: Array<{ role: string; content: string; created_at: string }> =
+                    await res.json();
+
+                if (data.length > 0) {
+                    const loaded: Message[] = data.map((m, i) => ({
+                        id: `loaded-${i}`,
+                        role: m.role as "user" | "assistant",
+                        content: m.content,
+                        timestamp: new Date(m.created_at),
+                    }));
+                    setMessages([WELCOME_MESSAGE, ...loaded]);
+                    scrollToBottom();
+                }
+            } catch {
+                // Silently ignore — first time or backend down
+            }
+        };
+
+        loadHistory();
+    }, [conversationId, scrollToBottom]);
 
     const sendMessage = useCallback(
         async (text: string) => {
@@ -57,7 +113,6 @@ export function useChat() {
                 timestamp: new Date(),
             };
 
-            // Capture history BEFORE adding the new user message
             const history = buildHistory(messages);
 
             setMessages((prev) => [...prev, userMessage]);
@@ -68,6 +123,7 @@ export function useChat() {
                 const body: ChatRequest = {
                     message: trimmed,
                     tenant_id: TENANT_ID,
+                    conversation_id: conversationId,
                     context: getScreenContext(),
                     history,
                 };
@@ -106,8 +162,63 @@ export function useChat() {
                 scrollToBottom();
             }
         },
-        [isLoading, messages, scrollToBottom]
+        [isLoading, messages, scrollToBottom, conversationId]
     );
 
-    return { messages, isLoading, sendMessage, messagesEndRef };
+    const sendFeedback = useCallback(
+        async (messageId: string, rating: "positive" | "negative") => {
+            const msgIndex = messages.findIndex((m) => m.id === messageId);
+            if (msgIndex < 0) return;
+
+            const assistantMsg = messages[msgIndex];
+            let userMsg: Message | undefined;
+            for (let i = msgIndex - 1; i >= 0; i--) {
+                if (messages[i].role === "user") {
+                    userMsg = messages[i];
+                    break;
+                }
+            }
+
+            setMessages((prev) =>
+                prev.map((m) =>
+                    m.id === messageId ? { ...m, feedbackGiven: rating } : m
+                )
+            );
+
+            try {
+                const body: FeedbackRequest = {
+                    tenant_id: TENANT_ID,
+                    message: userMsg?.content ?? "",
+                    response: assistantMsg.content,
+                    rating,
+                    context: null,
+                };
+                await fetch(FEEDBACK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+            } catch {
+                // Silently ignore
+            }
+        },
+        [messages]
+    );
+
+    const startNewConversation = useCallback(() => {
+        const newId = crypto.randomUUID();
+        localStorage.setItem(STORAGE_KEY, newId);
+        setConversationId(newId);
+        setMessages([WELCOME_MESSAGE]);
+        loadedRef.current = true; // Don't try to load from a brand-new conversation
+    }, []);
+
+    return {
+        messages,
+        isLoading,
+        sendMessage,
+        sendFeedback,
+        startNewConversation,
+        messagesEndRef,
+    };
 }

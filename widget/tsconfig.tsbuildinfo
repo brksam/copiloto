@@ -1,1 +1,1 @@
-{"root":["./src/index.tsx","./src/vite-env.d.ts","./src/components/chatinput.tsx","./src/components/chatmessage.tsx","./src/components/chatwidget.tsx","./src/hooks/usechat.ts","./src/types/index.ts"],"version":"5.7.3"}
+{"root":["./src/index.tsx","./src/vite-env.d.ts","./src/components/chatinput.tsx","./src/components/chatmessage.tsx","./src/components/chatwidget.tsx","./src/components/demopage.tsx","./src/components/passwordgate.tsx","./src/components/splashscreen.tsx","./src/hooks/usechat.ts","./src/types/index.ts"],"version":"5.7.3"}
