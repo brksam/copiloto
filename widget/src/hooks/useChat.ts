@@ -32,9 +32,9 @@ function buildHistory(messages: Message[]): HistoryEntry[] {
     return messages.map((m) => ({ role: m.role, content: m.content }));
 }
 
-const API_URL = "http://localhost:8000/chat";
-const FEEDBACK_URL = "http://localhost:8000/feedback/";
-const CONVERSATIONS_URL = "http://localhost:8000/conversations";
+const API_URL = "https://copiloto-farma-api.onrender.com/chat";
+const FEEDBACK_URL = "https://copiloto-farma-api.onrender.com/feedback/";
+const CONVERSATIONS_URL = "https://copiloto-farma-api.onrender.com/conversations";
 const TENANT_ID = "farmacia-teste";
 const STORAGE_KEY = "copiloto_conversation_id";
 
