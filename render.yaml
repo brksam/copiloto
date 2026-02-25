@@ -1,0 +1,41 @@
+# https://render.com/docs/blueprint-spec
+databases:
+  - name: copiloto-farma-db
+    plan: free
+    databaseName: copiloto
+    user: copiloto
+    ipAllowList: []
+    postgresMajorVersion: "15"
+
+services:
+  - type: web
+    name: copiloto-farma-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ENV
+        value: prod
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        fromDatabase:
+          name: copiloto-farma-db
+          property: connectionString
+      - key: ANTHROPIC_API_KEY
+        sync: false     # definir manualmente no dashboard
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-4-6
+      - key: ANTHROPIC_MAX_TOKENS
+        value: "800"
+      - key: VOYAGE_API_KEY
+        sync: false     # definir manualmente no dashboard
+      - key: VOYAGE_MODEL_NAME
+        value: voyage-2
+      - key: EMBEDDING_DIM
+        value: "1024"
+      - key: RAG_TOP_K
+        value: "5"
+      - key: RAG_MAX_CONTEXT_CHARS
+        value: "6000"
+    healthCheckPath: /health

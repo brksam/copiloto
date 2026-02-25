@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+pydantic-settings
+SQLAlchemy[asyncio]
+asyncpg
+pgvector
+langchain
+langchain-anthropic
+anthropic
+tenacity
+requests
+beautifulsoup4
+pypdf
+python-multipart
+voyageai

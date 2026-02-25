@@ -1,0 +1,15 @@
+.env
+.env.*
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+node_modules
+widget/
+.vscode
+.idea
+*.md
+links_processados.txt
+scraper_linx.py
+db-data

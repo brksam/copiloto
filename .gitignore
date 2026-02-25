@@ -1,0 +1,47 @@
+# ── Python ────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+.venv/
+venv/
+env/
+
+# ── Node / Widget ─────────────────────────────────
+widget/node_modules/
+widget/dist/
+widget/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── Environment & Secrets ─────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Docker ────────────────────────────────────────
+db-data/
+
+# ── IDE / Editor ──────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Scraper runtime ──────────────────────────────
+links_processados.txt
+
+# ── Misc ─────────────────────────────────────────
+*.log
+*.bak
+*.tmp
