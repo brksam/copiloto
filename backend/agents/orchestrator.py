@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+import anthropic
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from sqlalchemy import select
@@ -48,6 +49,7 @@ class ChatOrchestrator:
         message: str,
         context: Dict[str, Any] | None = None,
         history: List[Dict[str, str]] | None = None,
+        screenshot: str | None = None,
     ) -> str:
         if self._client is None:
             raise RuntimeError(
@@ -94,6 +96,8 @@ class ChatOrchestrator:
             "Você é um co-piloto de IA especializado em operações de farmácias SaaS.\n"
             "Responda sempre de forma concisa, em PT-BR, e evite inventar dados.\n"
             "Quando não souber algo, admita explicitamente.\n"
+            "Se o usuário enviar uma captura de tela, analise-a cuidadosamente e "
+            "use as informações visuais para dar suporte contextualizado.\n"
             f"\n{screen_context_line}"
             f"{feedback_section}"
             f"=== CONTEXTO RAG ===\n{rag_context}\n"
@@ -114,7 +118,54 @@ class ChatOrchestrator:
             elif role == "assistant":
                 messages.append(AIMessage(content=content))
 
-        # Current user message
+        # Current user message — with screenshot: use Anthropic async SDK directly
+        if screenshot:
+            import logging
+            import re
+            logger = logging.getLogger("copiloto-farma")
+            logger.info(f"Entrando no bloco de screenshot, tamanho: {len(screenshot)}")
+
+            # Strip data URL prefix (handles png, jpeg, webp, etc.)
+            clean_b64 = re.sub(r"^data:image/[^;]+;base64,", "", screenshot)
+
+            # Build history for the vision call too
+            vision_messages: list[dict] = []
+            for entry in history:
+                role = entry.get("role", "")
+                content = entry.get("content", "")
+                if role in ("user", "assistant"):
+                    vision_messages.append({"role": role, "content": content})
+
+            vision_messages.append(
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": "image/png",
+                                "data": clean_b64,
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": f"Descreva o que está visível nessa tela e responda: {message}",
+                        },
+                    ],
+                }
+            )
+
+            async_client = anthropic.AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
+            response = await async_client.messages.create(
+                model=settings.ANTHROPIC_MODEL,
+                max_tokens=max(1024, settings.ANTHROPIC_MAX_TOKENS),
+                system=system_prompt,
+                messages=vision_messages,
+            )
+            return response.content[0].text
+
+        # Without screenshot: use LangChain as usual
         messages.append(HumanMessage(content=message))
 
         result = await self._client.ainvoke(messages)  # type: ignore[union-attr]

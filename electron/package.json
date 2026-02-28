@@ -1,0 +1,40 @@
+{
+    "name": "copiloto-farma-desktop",
+    "version": "1.0.0",
+    "description": "Co-piloto Farma — Desktop App",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "build": "electron-builder --win --x64"
+    },
+    "build": {
+        "appId": "com.copiloto.farma",
+        "productName": "Co-piloto Farma",
+        "directories": {
+            "output": "release"
+        },
+        "files": [
+            "main.js",
+            "preload.js",
+            "assets/**/*"
+        ],
+        "extraResources": [
+            {
+                "from": "../widget/dist",
+                "to": "widget/dist"
+            }
+        ],
+        "win": {
+            "target": "nsis",
+            "icon": "assets/icon.png"
+        },
+        "nsis": {
+            "oneClick": true,
+            "allowToChangeInstallationDirectory": false
+        }
+    },
+    "devDependencies": {
+        "electron": "^28.0.0",
+        "electron-builder": "^24.0.0"
+    }
+}

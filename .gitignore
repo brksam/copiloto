@@ -22,6 +22,10 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# ── Electron ──────────────────────────────────────
+electron/node_modules/
+electron/release/
+
 # ── Environment & Secrets ─────────────────────────
 .env
 .env.local

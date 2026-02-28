@@ -22,6 +22,7 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="Mensagem do usuário")
     tenant_id: str = Field(..., description="Identificador do tenant (farmácia/cliente)")
     conversation_id: str | None = Field(default=None, description="ID da conversa para persistência")
+    screenshot: str | None = Field(default=None, description="Screenshot base64 da tela do usuário")
     context: Dict[str, Any] | None = Field(
         default=None,
         description="Contexto adicional arbitrário (ex: usuário logado, tela atual, etc.)",
@@ -48,6 +49,7 @@ async def chat_endpoint(
             message=payload.message,
             context=payload.context,
             history=[h.model_dump() for h in payload.history],
+            screenshot=payload.screenshot,
         )
     except RuntimeError as exc:
         raise HTTPException(

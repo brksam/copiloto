@@ -22,6 +22,7 @@ export interface ChatRequest {
     message: string;
     tenant_id: string;
     conversation_id?: string;
+    screenshot?: string;
     context: ScreenContext;
     history: HistoryEntry[];
 }

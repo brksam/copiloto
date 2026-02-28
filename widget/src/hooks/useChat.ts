@@ -32,9 +32,10 @@ function buildHistory(messages: Message[]): HistoryEntry[] {
     return messages.map((m) => ({ role: m.role, content: m.content }));
 }
 
-const API_URL = "https://copiloto-farma-api.onrender.com/chat";
-const FEEDBACK_URL = "https://copiloto-farma-api.onrender.com/feedback/";
-const CONVERSATIONS_URL = "https://copiloto-farma-api.onrender.com/conversations";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "https://copiloto-farma-api.onrender.com";
+const API_URL = `${BASE_URL}/chat`;
+const FEEDBACK_URL = `${BASE_URL}/feedback/`;
+const CONVERSATIONS_URL = `${BASE_URL}/conversations`;
 const TENANT_ID = "farmacia-teste";
 const STORAGE_KEY = "copiloto_conversation_id";
 
@@ -120,10 +121,22 @@ export function useChat() {
             scrollToBottom();
 
             try {
+                // Capture screenshot in Electron before sending
+                let screenshot: string | undefined;
+                if (window.electronAPI?.captureScreen) {
+                    try {
+                        const base64 = await window.electronAPI.captureScreen();
+                        if (base64) screenshot = base64;
+                    } catch {
+                        // Silently ignore capture errors
+                    }
+                }
+
                 const body: ChatRequest = {
                     message: trimmed,
                     tenant_id: TENANT_ID,
                     conversation_id: conversationId,
+                    screenshot,
                     context: getScreenContext(),
                     history,
                 };
